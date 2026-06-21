@@ -1,8 +1,13 @@
 [versions]
-trove = "1.0.0+26.1"
+trove = "1.4.1+26.2"
 
 [libraries]
 trove-bom = { module = "me.roundaround:trove-bom", version.ref = "trove" }
 trove-fabric-core = { module = "me.roundaround:trove-fabric-core" }
 trove-neoforge-core = { module = "me.roundaround:trove-neoforge-core" }
 trove-forge-core = { module = "me.roundaround:trove-forge-core" }
+# Game-test harness is per-loader (AL-051 / TR-026): a real, loader-discoverable
+# test-only mod, declared per loader subproject like trove-*-core.
+trove-fabric-gametest = { module = "me.roundaround:trove-fabric-gametest" }
+trove-neoforge-gametest = { module = "me.roundaround:trove-neoforge-gametest" }
+trove-forge-gametest = { module = "me.roundaround:trove-forge-gametest" }

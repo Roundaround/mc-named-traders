@@ -9,4 +9,7 @@ repositories {
 dependencies {
   libBundle(platform(libs.trove.bom))
   libBundle(libs.trove.forge.core)
+
+  gametestImplementation(platform(libs.trove.bom))
+  gametestImplementation(libs.trove.forge.gametest)
 }
