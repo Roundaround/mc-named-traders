@@ -12,9 +12,6 @@ import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.animal.equine.TraderLlama;
 import net.minecraft.world.entity.npc.wanderingtrader.WanderingTrader;
-import net.minecraft.world.level.ChunkPos;
-
-import java.util.function.BooleanSupplier;
 
 /** Shared helpers for the Named Traders {@code @ServerGameTest} suite. */
 final class DespawnTestSupport {
@@ -27,14 +24,8 @@ final class DespawnTestSupport {
   private DespawnTestSupport() {
   }
 
-  /** Force-load the arena chunk, since a player-less dedicated server keeps nothing loaded. */
   static void prepare(ServerTestContext context) {
-    ChunkPos chunk = ChunkPos.containing(ARENA);
-    context.onCleanup(() -> context.runOnServer(
-        (server) -> server.overworld().setChunkForced(chunk.x(), chunk.z(), false)));
-    context.runOnServer((server) -> server.overworld().setChunkForced(chunk.x(), chunk.z(), true));
-    waitUntil(context, () -> context.overworld().isPositionEntityTicking(ARENA),
-        "arena chunk never became entity-ticking");
+    context.forceLoadChunk(ARENA);
   }
 
   static WanderingTrader spawnTrader(ServerTestContext context, int slot, boolean named) {
@@ -81,7 +72,11 @@ final class DespawnTestSupport {
 
   /** Block until the unnamed control has despawned, which proves the window outlasted the timer. */
   static void waitForDespawn(ServerTestContext context, Entity control, String what) {
-    waitUntil(context, control::isRemoved, what + " never despawned, so the test window proves nothing");
+    try {
+      context.waitFor((server) -> control.isRemoved(), TIMEOUT_TICKS);
+    } catch (GameTestAssertionException e) {
+      throw new GameTestAssertionException(what + " never despawned, so the test window proves nothing");
+    }
   }
 
   static void expectAlive(ServerTestContext context, Entity entity, String what) {
@@ -94,15 +89,5 @@ final class DespawnTestSupport {
     if (!condition) {
       throw new GameTestAssertionException(message);
     }
-  }
-
-  private static void waitUntil(ServerTestContext context, BooleanSupplier condition, String failure) {
-    for (int i = 0; i < TIMEOUT_TICKS; i++) {
-      if (context.computeOnServer((server) -> condition.getAsBoolean())) {
-        return;
-      }
-      context.waitTicks(1);
-    }
-    throw new GameTestAssertionException(failure);
   }
 }
